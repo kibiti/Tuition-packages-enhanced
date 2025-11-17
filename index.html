@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElimuHub - Tuition Packages Generator</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- jsPDF Library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -62,96 +65,102 @@
                 
                 <div class="subject-controls">
                     <div class="subject-selector">
-                        <label for="subjectSelect">Add Subject:</label>
-                        <select id="subjectSelect">
-                            <!-- CBC Subjects -->
-                            <optgroup label="CBC Curriculum">
-                                <option value="Mathematics">Mathematics</option>
-                                <option value="English">English</option>
-                                <option value="Kiswahili">Kiswahili</option>
-                                <option value="Science">Science</option>
-                                <option value="Social Studies">Social Studies</option>
-                                <option value="CRE">CRE</option>
-                                <option value="IRE">IRE</option>
-                                <option value="HRE">HRE</option>
-                                <option value="Art and Craft">Art and Craft</option>
-                                <option value="Music">Music</option>
-                                <option value="Physical Education">Physical Education</option>
-                                <option value="Home Science">Home Science</option>
-                                <option value="Agriculture">Agriculture</option>
-                                <option value="Computer">Computer</option>
-                            </optgroup>
-                            
-                            <!-- 8-4-4 Subjects -->
-                            <optgroup label="8-4-4 Curriculum">
-                                <option value="Maths">Maths</option>
-                                <option value="English Language">English Language</option>
-                                <option value="Kiswahili Lugha">Kiswahili Lugha</option>
-                                <option value="Physics">Physics</option>
-                                <option value="Chemistry">Chemistry</option>
-                                <option value="Biology">Biology</option>
-                                <option value="History">History</option>
-                                <option value="Geography">Geography</option>
-                                <option value="CRE">CRE</option>
-                                <option value="IRE">IRE</option>
-                                <option value="HRE">HRE</option>
-                                <option value="Business Studies">Business Studies</option>
-                                <option value="Agriculture">Agriculture</option>
-                                <option value="Computer Studies">Computer Studies</option>
-                                <option value="Home Science">Home Science</option>
-                                <option value="Art and Design">Art and Design</option>
-                                <option value="Music">Music</option>
-                                <option value="French">French</option>
-                                <option value="German">German</option>
-                                <option value="Arabic">Arabic</option>
-                            </optgroup>
-                            
-                            <!-- IGCSE Subjects -->
-                            <optgroup label="IGCSE Curriculum">
-                                <option value="Mathematics">Mathematics</option>
-                                <option value="Additional Mathematics">Additional Mathematics</option>
-                                <option value="English First Language">English First Language</option>
-                                <option value="English Second Language">English Second Language</option>
-                                <option value="Physics">Physics</option>
-                                <option value="Chemistry">Chemistry</option>
-                                <option value="Biology">Biology</option>
-                                <option value="Business Studies">Business Studies</option>
-                                <option value="Accounting">Accounting</option>
-                                <option value="Economics">Economics</option>
-                                <option value="History">History</option>
-                                <option value="Geography">Geography</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="French">French</option>
-                                <option value="German">German</option>
-                                <option value="Spanish">Spanish</option>
-                                <option value="Arabic">Arabic</option>
-                                <option value="Art and Design">Art and Design</option>
-                                <option value="Music">Music</option>
-                                <option value="Physical Education">Physical Education</option>
-                                <option value="Global Perspectives">Global Perspectives</option>
-                            </optgroup>
-                        </select>
+                        <div class="form-group">
+                            <label for="subjectSelect">Add Subject:</label>
+                            <select id="subjectSelect">
+                                <!-- CBC Subjects -->
+                                <optgroup label="CBC Curriculum">
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="English">English</option>
+                                    <option value="Kiswahili">Kiswahili</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Social Studies">Social Studies</option>
+                                    <option value="CRE">CRE</option>
+                                    <option value="IRE">IRE</option>
+                                    <option value="HRE">HRE</option>
+                                    <option value="Art and Craft">Art and Craft</option>
+                                    <option value="Music">Music</option>
+                                    <option value="Physical Education">Physical Education</option>
+                                    <option value="Home Science">Home Science</option>
+                                    <option value="Agriculture">Agriculture</option>
+                                    <option value="Computer">Computer</option>
+                                </optgroup>
+                                
+                                <!-- 8-4-4 Subjects -->
+                                <optgroup label="8-4-4 Curriculum">
+                                    <option value="Maths">Maths</option>
+                                    <option value="English Language">English Language</option>
+                                    <option value="Kiswahili Lugha">Kiswahili Lugha</option>
+                                    <option value="Physics">Physics</option>
+                                    <option value="Chemistry">Chemistry</option>
+                                    <option value="Biology">Biology</option>
+                                    <option value="History">History</option>
+                                    <option value="Geography">Geography</option>
+                                    <option value="CRE">CRE</option>
+                                    <option value="IRE">IRE</option>
+                                    <option value="HRE">HRE</option>
+                                    <option value="Business Studies">Business Studies</option>
+                                    <option value="Agriculture">Agriculture</option>
+                                    <option value="Computer Studies">Computer Studies</option>
+                                    <option value="Home Science">Home Science</option>
+                                    <option value="Art and Design">Art and Design</option>
+                                    <option value="Music">Music</option>
+                                    <option value="French">French</option>
+                                    <option value="German">German</option>
+                                    <option value="Arabic">Arabic</option>
+                                </optgroup>
+                                
+                                <!-- IGCSE Subjects -->
+                                <optgroup label="IGCSE Curriculum">
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Additional Mathematics">Additional Mathematics</option>
+                                    <option value="English First Language">English First Language</option>
+                                    <option value="English Second Language">English Second Language</option>
+                                    <option value="Physics">Physics</option>
+                                    <option value="Chemistry">Chemistry</option>
+                                    <option value="Biology">Biology</option>
+                                    <option value="Business Studies">Business Studies</option>
+                                    <option value="Accounting">Accounting</option>
+                                    <option value="Economics">Economics</option>
+                                    <option value="History">History</option>
+                                    <option value="Geography">Geography</option>
+                                    <option value="Computer Science">Computer Science</option>
+                                    <option value="Information Technology">Information Technology</option>
+                                    <option value="French">French</option>
+                                    <option value="German">German</option>
+                                    <option value="Spanish">Spanish</option>
+                                    <option value="Arabic">Arabic</option>
+                                    <option value="Art and Design">Art and Design</option>
+                                    <option value="Music">Music</option>
+                                    <option value="Physical Education">Physical Education</option>
+                                    <option value="Global Perspectives">Global Perspectives</option>
+                                </optgroup>
+                            </select>
+                        </div>
                         
-                        <label for="daysPerWeek">Days per Week:</label>
-                        <select id="daysPerWeek">
-                            <option value="1">1 day</option>
-                            <option value="2">2 days</option>
-                            <option value="3">3 days</option>
-                            <option value="4">4 days</option>
-                            <option value="5">5 days</option>
-                            <option value="6">6 days</option>
-                            <option value="7">7 days</option>
-                        </select>
+                        <div class="form-group">
+                            <label for="daysPerWeek">Days per Week:</label>
+                            <select id="daysPerWeek">
+                                <option value="1">1 day</option>
+                                <option value="2">2 days</option>
+                                <option value="3">3 days</option>
+                                <option value="4">4 days</option>
+                                <option value="5">5 days</option>
+                                <option value="6">6 days</option>
+                                <option value="7">7 days</option>
+                            </select>
+                        </div>
                         
-                        <label for="sessionDuration">Session Duration (hours):</label>
-                        <select id="sessionDuration">
-                            <option value="1">1 hour</option>
-                            <option value="1.5">1.5 hours</option>
-                            <option value="2">2 hours</option>
-                            <option value="2.5">2.5 hours</option>
-                            <option value="3">3 hours</option>
-                        </select>
+                        <div class="form-group">
+                            <label for="sessionDuration">Session Duration (hours):</label>
+                            <select id="sessionDuration">
+                                <option value="1">1 hour</option>
+                                <option value="1.5">1.5 hours</option>
+                                <option value="2">2 hours</option>
+                                <option value="2.5">2.5 hours</option>
+                                <option value="3">3 hours</option>
+                            </select>
+                        </div>
                         
                         <button id="addSubject" class="btn-primary">Add Subject</button>
                     </div>
@@ -161,6 +170,7 @@
                     <h3>Selected Subjects</h3>
                     <div id="subjectsContainer" class="subjects-container">
                         <!-- Dynamic subjects will appear here -->
+                        <div class="no-subjects">No subjects added yet</div>
                     </div>
                 </div>
             </section>
@@ -186,7 +196,7 @@
                 <div class="breakdown">
                     <h3>Per Subject Breakdown</h3>
                     <div id="subjectBreakdown" class="breakdown-list">
-                        <!-- Subject breakdown will appear here -->
+                        <div class="no-subjects">No subjects added yet</div>
                     </div>
                 </div>
             </section>
@@ -222,6 +232,7 @@
         </footer>
     </div>
 
+    <!-- Load scripts in correct order -->
     <script src="calculator.js"></script>
     <script src="exporter.js"></script>
     <script src="app.js"></script>
