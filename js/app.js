@@ -1,583 +1,314 @@
 class TuitionPackagesApp {
     constructor() {
-        this.calculator = new PackageCalculator();
-        this.exporter = new ProposalExporter();
-        this.currentProposal = null;
+        this.selectedPackage = 'comprehensive';
+        this.subjects = [];
+        this.hourlyRate = 600; // Default rate
+        this.serviceFeeRate = 0.15; // 15% service fee
         
         this.initializeEventListeners();
-        this.setDefaultDates();
+        this.updateSummary();
     }
 
     initializeEventListeners() {
-        // Package type selection
-        document.querySelectorAll('.package-option input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                this.updateCostSummary();
-                this.updateSubjectDaysLimit(e.target.value);
+        // Package selection
+        document.querySelectorAll('.package-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                this.selectPackage(e.currentTarget.dataset.package);
             });
+        });
+
+        // Rate override
+        document.getElementById('hourlyRate').addEventListener('change', (e) => {
+            this.hourlyRate = parseInt(e.target.value);
+            this.updatePackageDisplay();
+            this.updateSummary();
         });
 
         // Subject management
         document.getElementById('addSubject').addEventListener('click', () => {
-            this.addSubjectEntry();
+            this.addSubject();
         });
 
-        // Form inputs
-        document.getElementById('sessionDuration').addEventListener('change', () => {
-            this.updateCostSummary();
+        // Proposal generation
+        document.getElementById('generatePDF').addEventListener('click', () => {
+            this.generatePDF();
         });
 
-        // Generate proposal
-        document.getElementById('generateProposal').addEventListener('click', () => {
-            this.generateProposal();
-        });
-
-        // Export buttons
         document.getElementById('printProposal').addEventListener('click', () => {
             this.printProposal();
         });
 
-        document.getElementById('exportPDF').addEventListener('click', () => {
-            this.exportToPDF();
+        document.getElementById('resetAll').addEventListener('click', () => {
+            this.resetAll();
         });
 
-        // Form reset
-        document.querySelector('form').addEventListener('reset', () => {
-            this.resetApplication();
-        });
+        // Set default package
+        this.selectPackage('comprehensive');
     }
 
-    setDefaultDates() {
-        const today = new Date();
-        const nextMonday = new Date(today);
-        nextMonday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
+    selectPackage(packageType) {
+        this.selectedPackage = packageType;
         
-        document.getElementById('startDate').valueAsDate = nextMonday;
+        // Update UI
+        document.querySelectorAll('.package-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelector(`[data-package="${packageType}"]`).classList.add('selected');
+
+        // Set recommended rate based on package
+        const packageRates = {
+            'comprehensive': 600,
+            'standard': 700,
+            'compact': 800
+        };
+
+        this.hourlyRate = packageRates[packageType];
+        document.getElementById('hourlyRate').value = this.hourlyRate;
+        
+        this.updatePackageDisplay();
+        this.updateSummary();
     }
 
-    addSubjectEntry() {
+    updatePackageDisplay() {
+        // Update package cards to show selected rate
+        document.querySelectorAll('.package-card').forEach(card => {
+            const rateElement = card.querySelector('.rate');
+            if (rateElement) {
+                rateElement.textContent = `Recommended: KES ${this.getPackageRate(card.dataset.package)}/hr`;
+            }
+        });
+    }
+
+    getPackageRate(packageType) {
+        const rates = {
+            'comprehensive': 600,
+            'standard': 700,
+            'compact': 800
+        };
+        return rates[packageType] || 600;
+    }
+
+    addSubject() {
+        const subjectSelect = document.getElementById('subjectSelect');
+        const daysSelect = document.getElementById('daysPerWeek');
+        const durationSelect = document.getElementById('sessionDuration');
+
+        const subjectName = subjectSelect.value;
+        const daysPerWeek = parseInt(daysSelect.value);
+        const sessionDuration = parseFloat(durationSelect.value);
+
+        // Validate inputs
+        if (!subjectName) {
+            alert('Please select a subject');
+            return;
+        }
+
+        // Check if subject already exists
+        if (this.subjects.some(subj => subj.name === subjectName)) {
+            alert('This subject has already been added');
+            return;
+        }
+
+        // Add subject
+        const subject = {
+            name: subjectName,
+            daysPerWeek: daysPerWeek,
+            sessionDuration: sessionDuration
+        };
+
+        this.subjects.push(subject);
+        this.renderSubject(subject);
+        this.updateSummary();
+
+        // Reset form to first subject
+        subjectSelect.selectedIndex = 0;
+    }
+
+    renderSubject(subject) {
         const container = document.getElementById('subjectsContainer');
-        const subjectCount = container.children.length;
+        const subjectElement = document.createElement('div');
+        subjectElement.className = 'subject-item';
+        subjectElement.innerHTML = `
+            <div class="subject-info">
+                <span class="subject-name">${subject.name}</span>
+                <span class="subject-details">${subject.daysPerWeek} days/week × ${subject.sessionDuration} hrs</span>
+            </div>
+            <button class="btn-remove" data-subject="${subject.name}">×</button>
+        `;
+
+        // Add remove event listener
+        subjectElement.querySelector('.btn-remove').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.removeSubject(subject.name);
+        });
+
+        container.appendChild(subjectElement);
+    }
+
+    removeSubject(subjectName) {
+        this.subjects = this.subjects.filter(subj => subj.name !== subjectName);
         
-        if (subjectCount >= 6) {
-            alert('Maximum of 6 subjects allowed per package');
+        // Remove from UI
+        const container = document.getElementById('subjectsContainer');
+        const subjectElement = container.querySelector(`[data-subject="${subjectName}"]`);
+        if (subjectElement) {
+            subjectElement.closest('.subject-item').remove();
+        }
+
+        this.updateSummary();
+    }
+
+    updateSummary() {
+        if (this.subjects.length === 0) {
+            this.displayEmptySummary();
             return;
         }
 
-        const newEntry = document.createElement('div');
-        newEntry.className = 'subject-entry';
-        newEntry.innerHTML = `
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Subject</label>
-                    <select class="subject-select">
-                        <option value="">Select Subject</option>
-                        <option value="mathematics">Mathematics</option>
-                        <option value="english">English</option>
-                        <option value="kiswahili">Kiswahili</option>
-                        <option value="science">Science</option>
-                        <option value="chemistry">Chemistry</option>
-                        <option value="biology">Biology</option>
-                        <option value="physics">Physics</option>
-                        <option value="history">History</option>
-                        <option value="geography">Geography</option>
-                        <option value="social_studies">Social Studies</option>
-                        <option value="french">French</option>
-                        <option value="ire">IRE</option>
-                        <option value="home_science">Home Science</option>
-                        <option value="agriculture">Agriculture</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Days per Week</label>
-                    <select class="days-select">
-                        <option value="3">3 days</option>
-                        <option value="4">4 days</option>
-                        <option value="5">5 days</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Action</label>
-                    <button type="button" class="btn-remove-subject">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        `;
+        const calculator = new PackageCalculator();
+        const calculations = calculator.calculateCosts(this.subjects, this.hourlyRate, this.serviceFeeRate);
 
-        container.appendChild(newEntry);
-
-        // Add event listener to remove button
-        const removeBtn = newEntry.querySelector('.btn-remove-subject');
-        removeBtn.addEventListener('click', () => {
-            if (container.children.length > 1) {
-                container.removeChild(newEntry);
-                this.updateCostSummary();
-            }
-        });
-
-        // Add event listeners to new selects
-        newEntry.querySelector('.subject-select').addEventListener('change', () => {
-            this.updateCostSummary();
-        });
-        newEntry.querySelector('.days-select').addEventListener('change', () => {
-            this.updateCostSummary();
-        });
-
-        // Enable remove button if this isn't the first entry
-        if (container.children.length > 1) {
-            container.querySelector('.btn-remove-subject').disabled = false;
-        }
+        this.displaySummary(calculations);
+        this.displaySubjectBreakdown(calculations.subjectBreakdown);
     }
 
-    updateSubjectDaysLimit(packageType) {
-        const maxDays = this.calculator.daysPerWeek[packageType];
-        const daySelects = document.querySelectorAll('.days-select');
+    displayEmptySummary() {
+        document.getElementById('weeklyCost').textContent = 'KES 0';
+        document.getElementById('firstWeekCost').textContent = 'KES 0';
+        document.getElementById('serviceFee').textContent = 'KES 0';
         
-        daySelects.forEach(select => {
-            Array.from(select.options).forEach(option => {
-                const days = parseInt(option.value);
-                option.disabled = days > maxDays;
-                if (days > maxDays) {
-                    option.textContent = `${days} days (Exceeds package limit)`;
-                }
-            });
-            
-            // Ensure current selection is valid
-            if (parseInt(select.value) > maxDays) {
-                select.value = maxDays.toString();
-            }
-        });
-        
-        this.updateCostSummary();
+        const breakdown = document.getElementById('subjectBreakdown');
+        breakdown.innerHTML = '<p class="no-subjects">No subjects added yet</p>';
     }
 
-    updateCostSummary() {
-        const packageType = document.querySelector('input[name="packageType"]:checked')?.value;
-        const sessionDuration = parseFloat(document.getElementById('sessionDuration').value);
-        const subjects = this.getSelectedSubjects();
-
-        if (!packageType || subjects.length === 0) {
-            this.showCostSummaryPlaceholder();
-            return;
-        }
-
-        const costSummary = this.calculator.calculatePackageCost(packageType, subjects, sessionDuration);
-        this.renderCostSummary(costSummary, packageType);
+    displaySummary(calculations) {
+        document.getElementById('weeklyCost').textContent = `KES ${calculations.weeklyCost.toLocaleString()}`;
+        document.getElementById('firstWeekCost').textContent = `KES ${calculations.firstWeekCost.toLocaleString()}`;
+        document.getElementById('serviceFee').textContent = `KES ${calculations.serviceFee.toLocaleString()}`;
     }
 
-    getSelectedSubjects() {
-        const subjects = [];
-        const subjectEntries = document.querySelectorAll('.subject-entry');
-        
-        subjectEntries.forEach(entry => {
-            const subjectSelect = entry.querySelector('.subject-select');
-            const daysSelect = entry.querySelector('.days-select');
-            
-            if (subjectSelect.value) {
-                subjects.push({
-                    name: subjectSelect.options[subjectSelect.selectedIndex].text,
-                    daysPerWeek: parseInt(daysSelect.value)
-                });
-            }
-        });
-        
-        return subjects;
-    }
+    displaySubjectBreakdown(breakdown) {
+        const container = document.getElementById('subjectBreakdown');
+        container.innerHTML = '';
 
-    showCostSummaryPlaceholder() {
-        const summaryElement = document.getElementById('costSummary');
-        summaryElement.innerHTML = `
-            <div class="summary-placeholder">
-                <p>Select a package and subjects to see cost breakdown</p>
-            </div>
-        `;
-    }
-
-    renderCostSummary(costSummary, packageType) {
-        const packageDetails = this.calculator.getPackageDetails(packageType);
-        const summaryElement = document.getElementById('costSummary');
-        
-        let html = `
-            <div class="summary-item">
-                <span>Package:</span>
-                <span>${packageDetails.name}</span>
-            </div>
-            <div class="summary-item">
-                <span>Session Duration:</span>
-                <span>${document.getElementById('sessionDuration').value} hours</span>
-            </div>
-            <div class="summary-item">
-                <span>Subjects:</span>
-                <span>${costSummary.perSubjectCost.length}</span>
-            </div>
-        `;
-
-        // Per subject costs
-        costSummary.perSubjectCost.forEach(subject => {
-            html += `
-                <div class="summary-item">
-                    <span>${subject.name}:</span>
-                    <span>${this.calculator.formatCurrency(subject.cost)}/week</span>
+        breakdown.forEach(item => {
+            const breakdownItem = document.createElement('div');
+            breakdownItem.className = 'breakdown-item';
+            breakdownItem.innerHTML = `
+                <span class="breakdown-subject">${item.subject}</span>
+                <span class="breakdown-cost">KES ${item.weeklyCost.toLocaleString()}/week</span>
+                <div class="breakdown-details">
+                    ${item.daysPerWeek} days × ${item.sessionDuration} hrs × KES ${item.hourlyRate}/hr
                 </div>
             `;
+            container.appendChild(breakdownItem);
         });
-
-        // Totals
-        html += `
-            <div class="summary-item highlight">
-                <span>Weekly Total:</span>
-                <span>${this.calculator.formatCurrency(costSummary.weeklyCost)}</span>
-            </div>
-            <div class="summary-item">
-                <span>Service Fee:</span>
-                <span>${this.calculator.formatCurrency(costSummary.serviceFee)}</span>
-            </div>
-            <div class="summary-item summary-total">
-                <span>First Week Total:</span>
-                <span>${this.calculator.formatCurrency(costSummary.firstWeekCost)}</span>
-            </div>
-        `;
-
-        summaryElement.innerHTML = html;
     }
 
-    generateProposal() {
-        // Validate form
-        if (!this.validateForm()) {
+    generatePDF() {
+        if (this.subjects.length === 0) {
+            alert('Please add at least one subject before generating a proposal');
             return;
         }
 
-        // Collect form data
-        const formData = this.collectFormData();
-        
-        // Calculate costs
-        const costSummary = this.calculator.calculatePackageCost(
-            formData.packageType,
-            formData.subjects,
-            formData.sessionDuration
-        );
+        const clientName = document.getElementById('clientName').value.trim() || 'Client';
+        const clientEmail = document.getElementById('clientEmail').value.trim() || 'Not provided';
+        const notes = document.getElementById('proposalNotes').value.trim();
 
-        // Create proposal object
-        this.currentProposal = {
-            ...formData,
-            costSummary,
-            packageDetails: this.calculator.getPackageDetails(formData.packageType),
-            generatedDate: new Date().toLocaleDateString('en-GB')
-        };
+        const calculator = new PackageCalculator();
+        const calculations = calculator.calculateCosts(this.subjects, this.hourlyRate, this.serviceFeeRate);
 
-        // Render proposal
-        this.renderProposal(this.currentProposal);
-        
-        // Enable export buttons
-        document.getElementById('printProposal').disabled = false;
-        document.getElementById('exportPDF').disabled = false;
-
-        // Show success message
-        this.showNotification('Proposal generated successfully!', 'success');
-    }
-
-    validateForm() {
-        const requiredFields = [
-            'studentName', 'gradeLevel', 'location', 'curriculum'
-        ];
-
-        for (const fieldId of requiredFields) {
-            const field = document.getElementById(fieldId);
-            if (!field.value.trim()) {
-                this.showNotification(`Please fill in ${field.labels[0].textContent}`, 'error');
-                field.focus();
-                return false;
-            }
-        }
-
-        const packageType = document.querySelector('input[name="packageType"]:checked');
-        if (!packageType) {
-            this.showNotification('Please select a package type', 'error');
-            return false;
-        }
-
-        const subjects = this.getSelectedSubjects();
-        if (subjects.length === 0) {
-            this.showNotification('Please add at least one subject', 'error');
-            return false;
-        }
-
-        return true;
-    }
-
-    collectFormData() {
-        const packageType = document.querySelector('input[name="packageType"]:checked').value;
-        const subjects = this.getSelectedSubjects();
-        
-        return {
-            studentName: document.getElementById('studentName').value,
-            gradeLevel: document.getElementById('gradeLevel').value,
-            location: document.getElementById('location').value,
-            curriculum: document.getElementById('curriculum').value,
-            packageType: packageType,
-            sessionDuration: parseFloat(document.getElementById('sessionDuration').value),
-            subjects: subjects,
-            startDate: document.getElementById('startDate').value,
-            preferredDays: Array.from(document.getElementById('preferredDays').selectedOptions)
-                .map(option => option.value),
-            specialRequirements: document.getElementById('specialRequirements').value
-        };
-    }
-
-    renderProposal(proposal) {
-        const previewElement = document.getElementById('proposalPreview');
-        
-        previewElement.innerHTML = `
-            <div class="proposal-content">
-                ${this.renderProposalHeader(proposal)}
-                ${this.renderStudentInfo(proposal)}
-                ${this.renderPackageDetails(proposal)}
-                ${this.renderCostSummaryTable(proposal)}
-                ${this.renderPaymentTerms()}
-                ${this.renderComplianceNotes()}
-                ${this.renderConfirmationSections(proposal)}
-            </div>
-        `;
-    }
-
-    renderProposalHeader(proposal) {
-        return `
-            <div class="proposal-header">
-                <h1>ELIMUHUB EDUCATION CONSULTANTS</h1>
-                <p class="subtitle">Custom Tuition Package Proposal</p>
-                <p>Generated on: ${proposal.generatedDate}</p>
-            </div>
-        `;
-    }
-
-    renderStudentInfo(proposal) {
-        return `
-            <div class="info-section">
-                <div>
-                    <p><strong>Student Name:</strong> ${proposal.studentName}</p>
-                    <p><strong>Grade Level:</strong> ${proposal.gradeLevel}</p>
-                    <p><strong>Curriculum:</strong> ${proposal.curriculum}</p>
-                </div>
-                <div>
-                    <p><strong>Location:</strong> ${proposal.location}</p>
-                    <p><strong>Start Date:</strong> ${proposal.startDate}</p>
-                    <p><strong>Preferred Days:</strong> ${proposal.preferredDays.join(', ') || 'Flexible'}</p>
-                </div>
-            </div>
-        `;
-    }
-
-    renderPackageDetails(proposal) {
-        const packageInfo = proposal.packageDetails;
-        
-        let subjectsHtml = proposal.subjects.map(subject => `
-            <tr>
-                <td>${subject.name}</td>
-                <td>${subject.daysPerWeek} days/week</td>
-                <td class="amount">${this.calculator.formatCurrency(
-                    this.calculator.calculateSubjectCost(
-                        proposal.packageType,
-                        proposal.sessionDuration,
-                        subject.daysPerWeek
-                    )
-                )}</td>
-            </tr>
-        `).join('');
-
-        return `
-            <div class="form-section">
-                <h3><i class="fas fa-box-open"></i> Package Details</h3>
-                <div class="info-section">
-                    <div>
-                        <p><strong>Package Type:</strong> ${packageInfo.name}</p>
-                        <p><strong>Days per Week:</strong> ${packageInfo.days}</p>
-                        <p><strong>Rate:</strong> ${this.calculator.formatCurrency(packageInfo.rate)}/hour per subject</p>
-                    </div>
-                    <div>
-                        <p><strong>Session Duration:</strong> ${proposal.sessionDuration} hours</p>
-                        <p><strong>Total Subjects:</strong> ${proposal.subjects.length}</p>
-                        <p><strong>Description:</strong> ${packageInfo.description}</p>
-                    </div>
-                </div>
-                
-                <h4>Subject Breakdown</h4>
-                <table class="cost-summary-table">
-                    <thead>
-                        <tr>
-                            <th>Subject</th>
-                            <th>Frequency</th>
-                            <th class="amount">Weekly Cost</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${subjectsHtml}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-
-    renderCostSummaryTable(proposal) {
-        const cost = proposal.costSummary;
-        
-        return `
-            <div class="form-section">
-                <h3><i class="fas fa-calculator"></i> Cost Summary</h3>
-                <table class="cost-summary-table">
-                    <tbody>
-                        <tr>
-                            <td>Weekly Tuition Cost</td>
-                            <td class="amount">${this.calculator.formatCurrency(cost.weeklyCost)}</td>
-                        </tr>
-                        <tr>
-                            <td>Service & Confirmation Fee</td>
-                            <td class="amount">${this.calculator.formatCurrency(cost.serviceFee)}</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td><strong>First Week Total (Due Upon Start)</strong></td>
-                            <td class="amount"><strong>${this.calculator.formatCurrency(cost.firstWeekCost)}</strong></td>
-                        </tr>
-                        <tr>
-                            <td>Subsequent Weekly Payments</td>
-                            <td class="amount">${this.calculator.formatCurrency(cost.weeklyCost)}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-
-    renderPaymentTerms() {
-        return `
-            <div class="form-section">
-                <h3><i class="fas fa-money-bill-wave"></i> Payment Terms</h3>
-                <div class="notes-section">
-                    <ul>
-                        <li>Payment is made <strong>weekly every Friday</strong> through ElimuHub Education Consultants</li>
-                        <li><strong>First payment</strong> (first week) is due <strong>upfront upon teachers reporting</strong></li>
-                        <li><strong>KSh 1,000 service/confirmation fee</strong> included in first payment for quality assurance</li>
-                        <li><strong>Payment Method:</strong> Airtel Money — 0731 838387 (James Kibiti)</li>
-                        <li>Clients should <strong>not renegotiate rates</strong> directly with tutors</li>
-                    </ul>
-                </div>
-            </div>
-        `;
-    }
-
-    renderComplianceNotes() {
-        return `
-            <div class="form-section">
-                <h3><i class="fas fa-clipboard-check"></i> Compliance Notes</h3>
-                <div class="notes-section">
-                    <ul>
-                        <li>Payment is released only after client confirms satisfactory attendance & performance</li>
-                        <li>All payments must be processed exclusively through ElimuHub</li>
-                        <li>Any direct deals with clients lead to immediate termination and forfeiture of arrangements</li>
-                        <li>Schedule adjustments require 24 hours notice</li>
-                        <li>Package modifications can be requested through ElimuHub administration</li>
-                    </ul>
-                </div>
-            </div>
-        `;
-    }
-
-    renderConfirmationSections(proposal) {
-        return `
-            <div class="confirmation-section">
-                <div class="prepared-by">
-                    <h4>Prepared By:</h4>
-                    <p>ElimuHub Education Consultants – Administration</p>
-                    <div class="contact-info">
-                        <p>📞 0731 838387</p>
-                        <p>✉️ elimuhubconsultant@gmail.com</p>
-                        <p>🌐 elimuhub.simdif.com</p>
-                    </div>
-                    <div class="signature-line">
-                        <p>Signature: ____________________</p>
-                        <p>Date: ${proposal.generatedDate}</p>
-                    </div>
-                </div>
-                
-                <div class="client-acknowledgment">
-                    <h4>Client Acceptance:</h4>
-                    <p>I confirm acceptance of this tuition package proposal and agree to the terms outlined above.</p>
-                    <div class="signature-line">
-                        <p>Client Signature: ____________________</p>
-                        <p>Date: ____________________</p>
-                    </div>
-                </div>
-            </div>
-        `;
+        const exporter = new ProposalExporter();
+        exporter.generatePDF({
+            clientName: clientName,
+            clientEmail: clientEmail,
+            packageType: this.selectedPackage,
+            hourlyRate: this.hourlyRate,
+            subjects: this.subjects,
+            calculations: calculations,
+            notes: notes
+        });
     }
 
     printProposal() {
-        window.print();
+        if (this.subjects.length === 0) {
+            alert('Please add at least one subject before printing a proposal');
+            return;
+        }
+
+        const clientName = document.getElementById('clientName').value.trim() || 'Client';
+        const clientEmail = document.getElementById('clientEmail').value.trim() || 'Not provided';
+        const notes = document.getElementById('proposalNotes').value.trim();
+
+        const calculator = new PackageCalculator();
+        const calculations = calculator.calculateCosts(this.subjects, this.hourlyRate, this.serviceFeeRate);
+
+        const exporter = new ProposalExporter();
+        exporter.printProposal({
+            clientName: clientName,
+            clientEmail: clientEmail,
+            packageType: this.selectedPackage,
+            hourlyRate: this.hourlyRate,
+            subjects: this.subjects,
+            calculations: calculations,
+            notes: notes
+        });
     }
 
-    async exportToPDF() {
-        const proposalElement = document.getElementById('proposalPreview');
-        await this.exporter.exportToPDF(
-            proposalElement, 
-            `elimuhub-proposal-${this.currentProposal.studentName}.pdf`
-        );
+    resetAll() {
+        if (confirm('Are you sure you want to reset everything? This cannot be undone.')) {
+            this.subjects = [];
+            document.getElementById('subjectsContainer').innerHTML = '';
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientEmail').value = '';
+            document.getElementById('proposalNotes').value = '';
+            
+            this.selectPackage('comprehensive');
+            this.updateSummary();
+        }
     }
 
-    resetApplication() {
-        this.currentProposal = null;
-        document.getElementById('proposalPreview').innerHTML = `
-            <div class="preview-placeholder">
-                <i class="fas fa-file-alt"></i>
-                <h3>Proposal Preview</h3>
-                <p>Configure your package and click "Generate Proposal" to see the preview here.</p>
-            </div>
-        `;
-        
-        document.getElementById('printProposal').disabled = true;
-        document.getElementById('exportPDF').disabled = true;
-        
-        this.showCostSummaryPlaceholder();
-        this.setDefaultDates();
-    }
+    validateForm() {
+        const errors = [];
 
-    showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()">&times;</button>
-        `;
+        if (this.subjects.length === 0) {
+            errors.push('Please add at least one subject');
+        }
 
-        // Add styles
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: ${type === 'error' ? '#e74c3c' : type === 'success' ? '#27ae60' : '#3498db'};
-            color: white;
-            border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            max-width: 400px;
-        `;
+        if (this.hourlyRate < 500 || this.hourlyRate > 1000) {
+            errors.push('Hourly rate must be between 500 and 1000 KES');
+        }
 
-        document.body.appendChild(notification);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
+        // Validate each subject
+        this.subjects.forEach(subject => {
+            if (subject.daysPerWeek < 1 || subject.daysPerWeek > 7) {
+                errors.push(`Subject "${subject.name}" must have between 1-7 days per week`);
             }
-        }, 5000);
+            if (subject.sessionDuration <= 0) {
+                errors.push(`Subject "${subject.name}" must have a positive session duration`);
+            }
+        });
+
+        return errors;
     }
 }
 
-// Initialize application when DOM is loaded
+// Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new TuitionPackagesApp();
+    window.tuitionApp = new TuitionPackagesApp();
 });
+
+// Utility functions
+const utils = {
+    formatCurrency: (amount) => {
+        return `KES ${amount.toLocaleString()}`;
+    },
+
+    capitalizeFirst: (text) => {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    },
+
+    validateEmail: (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+};
