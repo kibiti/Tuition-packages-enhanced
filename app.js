@@ -74,7 +74,8 @@ class TuitionPackagesApp {
         document.querySelectorAll('.package-card').forEach(card => {
             const rateElement = card.querySelector('.rate');
             if (rateElement) {
-                rateElement.textContent = `Recommended: KES ${this.getPackageRate(card.dataset.package)}/hr`;
+                const packageRate = this.getPackageRate(card.dataset.package);
+                rateElement.textContent = `Recommended: KES ${packageRate}/hr`;
             }
         });
     }
@@ -126,6 +127,13 @@ class TuitionPackagesApp {
 
     renderSubject(subject) {
         const container = document.getElementById('subjectsContainer');
+        
+        // Remove "no subjects" message if it exists
+        const noSubjects = container.querySelector('.no-subjects');
+        if (noSubjects) {
+            noSubjects.remove();
+        }
+
         const subjectElement = document.createElement('div');
         subjectElement.className = 'subject-item';
         subjectElement.innerHTML = `
@@ -155,6 +163,11 @@ class TuitionPackagesApp {
             subjectElement.closest('.subject-item').remove();
         }
 
+        // Show "no subjects" message if empty
+        if (this.subjects.length === 0) {
+            container.innerHTML = '<div class="no-subjects">No subjects added yet</div>';
+        }
+
         this.updateSummary();
     }
 
@@ -177,7 +190,7 @@ class TuitionPackagesApp {
         document.getElementById('serviceFee').textContent = 'KES 0';
         
         const breakdown = document.getElementById('subjectBreakdown');
-        breakdown.innerHTML = '<p class="no-subjects">No subjects added yet</p>';
+        breakdown.innerHTML = '<div class="no-subjects">No subjects added yet</div>';
     }
 
     displaySummary(calculations) {
@@ -194,8 +207,8 @@ class TuitionPackagesApp {
             const breakdownItem = document.createElement('div');
             breakdownItem.className = 'breakdown-item';
             breakdownItem.innerHTML = `
-                <span class="breakdown-subject">${item.subject}</span>
-                <span class="breakdown-cost">KES ${item.weeklyCost.toLocaleString()}/week</span>
+                <div class="breakdown-subject">${item.subject}</div>
+                <div class="breakdown-cost">KES ${item.weeklyCost.toLocaleString()}/week</div>
                 <div class="breakdown-details">
                     ${item.daysPerWeek} days × ${item.sessionDuration} hrs × KES ${item.hourlyRate}/hr
                 </div>
@@ -218,7 +231,7 @@ class TuitionPackagesApp {
         const calculations = calculator.calculateCosts(this.subjects, this.hourlyRate, this.serviceFeeRate);
 
         const exporter = new ProposalExporter();
-        exporter.generatePDF({
+        const success = exporter.generatePDF({
             clientName: clientName,
             clientEmail: clientEmail,
             packageType: this.selectedPackage,
@@ -227,6 +240,10 @@ class TuitionPackagesApp {
             calculations: calculations,
             notes: notes
         });
+
+        if (success) {
+            alert('PDF generated successfully!');
+        }
     }
 
     printProposal() {
@@ -257,7 +274,7 @@ class TuitionPackagesApp {
     resetAll() {
         if (confirm('Are you sure you want to reset everything? This cannot be undone.')) {
             this.subjects = [];
-            document.getElementById('subjectsContainer').innerHTML = '';
+            document.getElementById('subjectsContainer').innerHTML = '<div class="no-subjects">No subjects added yet</div>';
             document.getElementById('clientName').value = '';
             document.getElementById('clientEmail').value = '';
             document.getElementById('proposalNotes').value = '';
@@ -266,49 +283,9 @@ class TuitionPackagesApp {
             this.updateSummary();
         }
     }
-
-    validateForm() {
-        const errors = [];
-
-        if (this.subjects.length === 0) {
-            errors.push('Please add at least one subject');
-        }
-
-        if (this.hourlyRate < 500 || this.hourlyRate > 1000) {
-            errors.push('Hourly rate must be between 500 and 1000 KES');
-        }
-
-        // Validate each subject
-        this.subjects.forEach(subject => {
-            if (subject.daysPerWeek < 1 || subject.daysPerWeek > 7) {
-                errors.push(`Subject "${subject.name}" must have between 1-7 days per week`);
-            }
-            if (subject.sessionDuration <= 0) {
-                errors.push(`Subject "${subject.name}" must have a positive session duration`);
-            }
-        });
-
-        return errors;
-    }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.tuitionApp = new TuitionPackagesApp();
 });
-
-// Utility functions
-const utils = {
-    formatCurrency: (amount) => {
-        return `KES ${amount.toLocaleString()}`;
-    },
-
-    capitalizeFirst: (text) => {
-        return text.charAt(0).toUpperCase() + text.slice(1);
-    },
-
-    validateEmail: (email) => {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-};
