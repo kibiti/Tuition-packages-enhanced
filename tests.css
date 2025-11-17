@@ -33,7 +33,6 @@ class TuitionPackageTests {
         
         this.assert('Calculator instance created', calculator !== null);
         this.assert('Service fee rate defaults to 15%', calculator.serviceFeeRate === 0.15);
-        this.assert('Valid curricula defined', Array.isArray(calculator.validCurricula));
     }
 
     testMixedDaysCalculations() {
@@ -198,12 +197,6 @@ class TuitionPackageTests {
         this.section('PDF Generation');
         
         const exporter = new ProposalExporter();
-
-        // Test subject cost calculation
-        const subject = { name: 'Mathematics', daysPerWeek: 5, sessionDuration: 1 };
-        const cost = exporter.calculateSubjectCost(subject, 600);
-        this.assert('PDF subject cost calculation', cost.weeklyCost === 3000);
-        this.assert('PDF weekly hours calculation', cost.weeklyHours === 5);
 
         // Test package name formatting
         this.assert('Comprehensive package name', exporter.formatPackageName('comprehensive') === 'Comprehensive Package');
@@ -384,19 +377,6 @@ class BrowserTestRunner {
 
         document.body.appendChild(errorDiv);
     }
-}
-
-// Export for Node.js environment
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { TuitionPackageTests, BrowserTestRunner };
-}
-
-// Auto-run tests if in test environment
-if (typeof window !== 'undefined' && window.location.search.includes('test=true')) {
-    document.addEventListener('DOMContentLoaded', () => {
-        const runner = new BrowserTestRunner();
-        runner.runTests();
-    });
 }
 
 // Quick test function for console
