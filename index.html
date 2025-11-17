@@ -4,251 +4,226 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElimuHub - Tuition Packages Generator</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/print.css" media="print">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
             <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>ELIMUHUB EDUCATION CONSULTANTS</h1>
-                    <p>Tuition Packages Generator</p>
-                </div>
+                <h1>ElimuHub Education Consultants</h1>
+                <p>Professional Tuition Packages Generator</p>
             </div>
         </header>
 
-        <main class="app-container">
-            <!-- Configuration Panel -->
-            <section class="config-panel">
-                <div class="panel-header">
-                    <h2><i class="fas fa-cog"></i> Package Configuration</h2>
+        <main>
+            <!-- Package Selection Section -->
+            <section class="package-section">
+                <h2>Select Tuition Package</h2>
+                <div class="package-cards">
+                    <div class="package-card" data-package="comprehensive">
+                        <h3>Comprehensive</h3>
+                        <p class="rate">Recommended: KES 600/hr</p>
+                        <p>Full curriculum coverage with maximum flexibility</p>
+                    </div>
+                    <div class="package-card" data-package="standard">
+                        <h3>Standard</h3>
+                        <p class="rate">Recommended: KES 700/hr</p>
+                        <p>Balanced approach for core subjects</p>
+                    </div>
+                    <div class="package-card" data-package="compact">
+                        <h3>Compact</h3>
+                        <p class="rate">Recommended: KES 800/hr</p>
+                        <p>Focused tutoring for specific needs</p>
+                    </div>
                 </div>
 
-                <form id="packageForm">
-                    <!-- Basic Information -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-user-graduate"></i> Student Information</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="studentName">Student Name *</label>
-                                <input type="text" id="studentName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="gradeLevel">Grade Level *</label>
-                                <select id="gradeLevel" required>
-                                    <option value="">Select Grade</option>
-                                    <option value="grade1-3">Grade 1-3</option>
-                                    <option value="grade4-6">Grade 4-6</option>
-                                    <option value="grade7-8">Grade 7-8</option>
-                                    <option value="form1-2">Form 1-2</option>
-                                    <option value="form3-4">Form 3-4</option>
-                                    <option value="igcse">IGCSE</option>
-                                    <option value="a-level">A-Level</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="location">Location *</label>
-                                <input type="text" id="location" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="curriculum">Curriculum *</label>
-                                <select id="curriculum" required>
-                                    <option value="">Select Curriculum</option>
-                                    <option value="cbc">CBC</option>
-                                    <option value="8-4-4">8-4-4 System</option>
-                                    <option value="igcse">IGCSE</option>
-                                    <option value="a-level">A-Level</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Package Selection -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-box-open"></i> Package Selection</h3>
-                        <div class="package-options">
-                            <div class="package-option" data-package="comprehensive">
-                                <input type="radio" id="packageComprehensive" name="packageType" value="comprehensive" required>
-                                <label for="packageComprehensive">
-                                    <h4>Comprehensive</h4>
-                                    <p class="package-days">5 days/week</p>
-                                    <p class="package-rate">KSh 600/hour per subject</p>
-                                </label>
-                            </div>
-                            <div class="package-option" data-package="standard">
-                                <input type="radio" id="packageStandard" name="packageType" value="standard">
-                                <label for="packageStandard">
-                                    <h4>Standard</h4>
-                                    <p class="package-days">4 days/week</p>
-                                    <p class="package-rate">KSh 700/hour per subject</p>
-                                </label>
-                            </div>
-                            <div class="package-option" data-package="compact">
-                                <input type="radio" id="packageCompact" name="packageType" value="compact">
-                                <label for="packageCompact">
-                                    <h4>Compact</h4>
-                                    <p class="package-days">3 days/week</p>
-                                    <p class="package-rate">KSh 800/hour per subject</p>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Subjects Configuration -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-book"></i> Subjects & Schedule</h3>
-                        <div class="form-group">
-                            <label for="sessionDuration">Session Duration (hours) *</label>
-                            <select id="sessionDuration" required>
-                                <option value="1">1 hour</option>
-                                <option value="1.5" selected>1.5 hours</option>
-                                <option value="2">2 hours</option>
-                            </select>
-                        </div>
-
-                        <div id="subjectsContainer">
-                            <div class="subject-entry">
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label>Subject</label>
-                                        <select class="subject-select">
-                                            <option value="">Select Subject</option>
-                                            <option value="mathematics">Mathematics</option>
-                                            <option value="english">English</option>
-                                            <option value="kiswahili">Kiswahili</option>
-                                            <option value="science">Science</option>
-                                            <option value="chemistry">Chemistry</option>
-                                            <option value="biology">Biology</option>
-                                            <option value="physics">Physics</option>
-                                            <option value="history">History</option>
-                                            <option value="geography">Geography</option>
-                                            <option value="social_studies">Social Studies</option>
-                                            <option value="french">French</option>
-                                            <option value="ire">IRE</option>
-                                            <option value="home_science">Home Science</option>
-                                            <option value="agriculture">Agriculture</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Days per Week</label>
-                                        <select class="days-select">
-                                            <option value="3">3 days</option>
-                                            <option value="4">4 days</option>
-                                            <option value="5">5 days</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Action</label>
-                                        <button type="button" class="btn-remove-subject" disabled>
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" id="addSubject" class="btn-secondary">
-                            <i class="fas fa-plus"></i> Add Another Subject
-                        </button>
-                    </div>
-
-                    <!-- Schedule Preferences -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-calendar-alt"></i> Schedule Preferences</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="startDate">Preferred Start Date</label>
-                                <input type="date" id="startDate">
-                            </div>
-                            <div class="form-group">
-                                <label for="preferredDays">Preferred Days</label>
-                                <select id="preferredDays" multiple>
-                                    <option value="monday">Monday</option>
-                                    <option value="tuesday">Tuesday</option>
-                                    <option value="wednesday">Wednesday</option>
-                                    <option value="thursday">Thursday</option>
-                                    <option value="friday">Friday</option>
-                                    <option value="saturday">Saturday</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="specialRequirements">Special Requirements</label>
-                            <textarea id="specialRequirements" rows="3" placeholder="Any special learning needs or preferences..."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" id="generateProposal" class="btn-primary">
-                            <i class="fas fa-file-invoice"></i> Generate Proposal
-                        </button>
-                        <button type="reset" class="btn-secondary">
-                            <i class="fas fa-redo"></i> Reset Form
-                        </button>
-                    </div>
-                </form>
+                <!-- Rate Override Section -->
+                <div class="rate-override">
+                    <label for="hourlyRate">Custom Hourly Rate (KES):</label>
+                    <select id="hourlyRate">
+                        <option value="500">500</option>
+                        <option value="550">550</option>
+                        <option value="600" selected>600</option>
+                        <option value="650">650</option>
+                        <option value="700">700</option>
+                        <option value="750">750</option>
+                        <option value="800">800</option>
+                        <option value="850">850</option>
+                        <option value="900">900</option>
+                        <option value="950">950</option>
+                        <option value="1000">1000</option>
+                    </select>
+                </div>
             </section>
 
-            <!-- Preview Panel -->
-            <section class="preview-panel">
-                <div class="panel-header">
-                    <h2><i class="fas fa-eye"></i> Proposal Preview</h2>
-                    <div class="preview-actions">
-                        <button id="printProposal" class="btn-secondary" disabled>
-                            <i class="fas fa-print"></i> Print
-                        </button>
-                        <button id="exportPDF" class="btn-secondary" disabled>
-                            <i class="fas fa-file-pdf"></i> Export PDF
-                        </button>
+            <!-- Subject Configuration Section -->
+            <section class="subjects-section">
+                <h2>Configure Subjects</h2>
+                
+                <div class="subject-controls">
+                    <div class="subject-selector">
+                        <label for="subjectSelect">Add Subject:</label>
+                        <select id="subjectSelect">
+                            <!-- CBC Subjects -->
+                            <optgroup label="CBC Curriculum">
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="English">English</option>
+                                <option value="Kiswahili">Kiswahili</option>
+                                <option value="Science">Science</option>
+                                <option value="Social Studies">Social Studies</option>
+                                <option value="CRE">CRE</option>
+                                <option value="IRE">IRE</option>
+                                <option value="HRE">HRE</option>
+                                <option value="Art and Craft">Art and Craft</option>
+                                <option value="Music">Music</option>
+                                <option value="Physical Education">Physical Education</option>
+                                <option value="Home Science">Home Science</option>
+                                <option value="Agriculture">Agriculture</option>
+                                <option value="Computer">Computer</option>
+                            </optgroup>
+                            
+                            <!-- 8-4-4 Subjects -->
+                            <optgroup label="8-4-4 Curriculum">
+                                <option value="Maths">Maths</option>
+                                <option value="English Language">English Language</option>
+                                <option value="Kiswahili Lugha">Kiswahili Lugha</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Biology">Biology</option>
+                                <option value="History">History</option>
+                                <option value="Geography">Geography</option>
+                                <option value="CRE">CRE</option>
+                                <option value="IRE">IRE</option>
+                                <option value="HRE">HRE</option>
+                                <option value="Business Studies">Business Studies</option>
+                                <option value="Agriculture">Agriculture</option>
+                                <option value="Computer Studies">Computer Studies</option>
+                                <option value="Home Science">Home Science</option>
+                                <option value="Art and Design">Art and Design</option>
+                                <option value="Music">Music</option>
+                                <option value="French">French</option>
+                                <option value="German">German</option>
+                                <option value="Arabic">Arabic</option>
+                            </optgroup>
+                            
+                            <!-- IGCSE Subjects -->
+                            <optgroup label="IGCSE Curriculum">
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Additional Mathematics">Additional Mathematics</option>
+                                <option value="English First Language">English First Language</option>
+                                <option value="English Second Language">English Second Language</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Business Studies">Business Studies</option>
+                                <option value="Accounting">Accounting</option>
+                                <option value="Economics">Economics</option>
+                                <option value="History">History</option>
+                                <option value="Geography">Geography</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="French">French</option>
+                                <option value="German">German</option>
+                                <option value="Spanish">Spanish</option>
+                                <option value="Arabic">Arabic</option>
+                                <option value="Art and Design">Art and Design</option>
+                                <option value="Music">Music</option>
+                                <option value="Physical Education">Physical Education</option>
+                                <option value="Global Perspectives">Global Perspectives</option>
+                            </optgroup>
+                        </select>
+                        
+                        <label for="daysPerWeek">Days per Week:</label>
+                        <select id="daysPerWeek">
+                            <option value="1">1 day</option>
+                            <option value="2">2 days</option>
+                            <option value="3">3 days</option>
+                            <option value="4">4 days</option>
+                            <option value="5">5 days</option>
+                            <option value="6">6 days</option>
+                            <option value="7">7 days</option>
+                        </select>
+                        
+                        <label for="sessionDuration">Session Duration (hours):</label>
+                        <select id="sessionDuration">
+                            <option value="1">1 hour</option>
+                            <option value="1.5">1.5 hours</option>
+                            <option value="2">2 hours</option>
+                            <option value="2.5">2.5 hours</option>
+                            <option value="3">3 hours</option>
+                        </select>
+                        
+                        <button id="addSubject" class="btn-primary">Add Subject</button>
                     </div>
                 </div>
 
-                <div id="proposalPreview" class="proposal-preview">
-                    <div class="preview-placeholder">
-                        <i class="fas fa-file-alt"></i>
-                        <h3>Proposal Preview</h3>
-                        <p>Configure your package and click "Generate Proposal" to see the preview here.</p>
+                <div class="subjects-list">
+                    <h3>Selected Subjects</h3>
+                    <div id="subjectsContainer" class="subjects-container">
+                        <!-- Dynamic subjects will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cost Summary Section -->
+            <section class="summary-section">
+                <h2>Cost Summary</h2>
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <h3>Weekly Cost</h3>
+                        <p id="weeklyCost" class="cost">KES 0</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>First Week Cost</h3>
+                        <p id="firstWeekCost" class="cost">KES 0</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Service Fee</h3>
+                        <p id="serviceFee" class="cost">KES 0</p>
+                    </div>
+                </div>
+                
+                <div class="breakdown">
+                    <h3>Per Subject Breakdown</h3>
+                    <div id="subjectBreakdown" class="breakdown-list">
+                        <!-- Subject breakdown will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Proposal Generation Section -->
+            <section class="proposal-section">
+                <h2>Generate Proposal</h2>
+                <div class="proposal-controls">
+                    <div class="form-group">
+                        <label for="clientName">Client Name:</label>
+                        <input type="text" id="clientName" placeholder="Enter client name">
+                    </div>
+                    <div class="form-group">
+                        <label for="clientEmail">Client Email:</label>
+                        <input type="email" id="clientEmail" placeholder="Enter client email">
+                    </div>
+                    <div class="form-group">
+                        <label for="proposalNotes">Additional Notes:</label>
+                        <textarea id="proposalNotes" placeholder="Any additional notes for the proposal..."></textarea>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="generatePDF" class="btn-primary">Generate PDF Proposal</button>
+                        <button id="printProposal" class="btn-secondary">Print Proposal</button>
+                        <button id="resetAll" class="btn-outline">Reset All</button>
                     </div>
                 </div>
             </section>
         </main>
 
-        <!-- Summary Panel -->
-        <aside class="summary-panel">
-            <div class="summary-header">
-                <h3><i class="fas fa-calculator"></i> Cost Summary</h3>
-            </div>
-            <div id="costSummary" class="cost-summary">
-                <div class="summary-placeholder">
-                    <p>Select a package and subjects to see cost breakdown</p>
-                </div>
-            </div>
-        </aside>
-
         <footer>
-            <div class="footer-content">
-                <div class="contact-info">
-                    <h4>ElimuHub Education Consultants</h4>
-                    <p><i class="fas fa-phone"></i> 0731 838387</p>
-                    <p><i class="fas fa-envelope"></i> elimuhubconsultant@gmail.com</p>
-                    <p><i class="fas fa-globe"></i> elimuhub.simdif.com</p>
-                </div>
-                <div class="footer-notes">
-                    <p><strong>Quality, Accountability & Progress in Every Lesson</strong></p>
-                    <p class="copyright">© 2025 ElimuHub Education Consultants. All rights reserved.</p>
-                </div>
-            </div>
+            <p>&copy; 2024 ElimuHub Education Consultants. All rights reserved.</p>
         </footer>
     </div>
 
-    <script src="js/calculator.js"></script>
-    <script src="js/exporter.js"></script>
-    <script src="js/app.js"></script>
+    <script src="calculator.js"></script>
+    <script src="exporter.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
