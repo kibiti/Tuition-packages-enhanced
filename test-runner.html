@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElimuHub - Test Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            color: #2563eb;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+        
+        .test-button.secondary {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .test-button.secondary:hover {
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+        }
+        
+        .test-button.outline {
+            background: transparent;
+            color: #64748b;
+            border: 2px solid #d1d5db;
+        }
+        
+        .test-button.outline:hover {
+            border-color: #64748b;
+            color: #374151;
+        }
+        
+        .results-section {
+            margin-top: 30px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2563eb;
+        }
+        
+        .results-title {
+            font-size: 1.5rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .results-summary {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value.passed {
+            color: #059669;
+        }
+        
+        .stat-value.failed {
+            color: #dc2626;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .test-results {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .test-result {
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #d1d5db;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+        
+        .test-result.pass {
+            border-left-color: #059669;
+            background: #f0fdf4;
+        }
+        
+        .test-result.fail {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+        
+        .test-result.error {
+            border-left-color: #d97706;
+            background: #fffbeb;
+        }
+        
+        .test-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .test-icon.pass {
+            background: #059669;
+            color: white;
+        }
+        
+        .test-icon.fail {
+            background: #dc2626;
+            color: white;
+        }
+        
+        .test-icon.error {
+            background: #d97706;
+            color: white;
+        }
+        
+        .test-description {
+            font-weight: 500;
+            color: #1e293b;
+        }
+        
+        .test-details {
+            margin-top: 8px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            color: #374151;
+            margin: 25px 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .quick-test {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #bae6fd;
+        }
+        
+        .test-example {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .test-controls {
+                flex-direction: column;
+            }
+            
+            .test-button {
+                width: 100%;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 ElimuHub Test Runner</h1>
+        <div class="subtitle">Comprehensive testing for tuition packages calculator</div>
+        
+        <div class="test-controls">
+            <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+            <button class="test-button secondary" onclick="runCalculatorTests()">Calculator Tests Only</button>
+            <button class="test-button secondary" onclick="runPDFTests()">PDF Export Tests</button>
+            <button class="test-button outline" onclick="clearResults()">Clear Results</button>
+            <button class="test-button outline" onclick="window.location.href='index.html'">Back to App</button>
+        </div>
+
+        <div class="quick-test">
+            <h3>🚀 Quick Test Examples</h3>
+            <div class="test-example">
+                <strong>Mixed Days Calculation</strong>
+                <div class="code-block">
+// Maths=5, English=4, History=3, French=1 days<br>
+// All 1 hour sessions, 600 KES/hr<br>
+// Expected: (5+4+3+1) × 600 = 7,800 KES weekly
+                </div>
+                <button class="test-button" onclick="testMixedDays()">Test This Example</button>
+            </div>
+            
+            <div class="test-example">
+                <strong>Rate Override Calculation</strong>
+                <div class="code-block">
+// Single subject, different rates<br>
+// Maths: 3 days × 2 hours<br>
+// Test rates: 500, 700, 1000 KES/hr<br>
+// Expected: 6 hours × rate
+                </div>
+                <button class="test-button" onclick="testRateOverrides()">Test Rate Overrides</button>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="results-header">
+                <div class="results-title">Test Results</div>
+            </div>
+            
+            <div id="resultsSummary" class="results-summary" style="display: none;">
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-value passed" id="passedCount">0</div>
+                        <div class="stat-label">Tests Passed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value failed" id="failedCount">0</div>
+                        <div class="stat-label">Tests Failed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="successRate">0%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCount">0</div>
+                        <div class="stat-label">Total Tests</div>
+                    </div>
+                </div>
+                <div id="summaryMessage"></div>
+            </div>
+            
+            <div id="testResults" class="test-results">
+                <div class="loading" id="loadingMessage" style="display: none;">
+                    <div class="spinner"></div>
+                    Running tests...
+                </div>
+                <div id="noTestsMessage">
+                    <div class="test-result">
+                        <div class="test-description">No tests run yet. Click a test button above to start testing.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Test Categories</div>
+        <div class="test-categories">
+            <div class="test-example">
+                <h4>🧮 Calculator Tests</h4>
+                <ul>
+                    <li>Mixed days per week calculations</li>
+                    <li>Rate override functionality</li>
+                    <li>Service fee calculations</li>
+                    <li>Input validation</li>
+                    <li>Edge cases and error handling</li>
+                </ul>
+            </div>
+            
+            <div class="test-example">
+                <h4>📊 PDF Export Tests</h4>
+                <ul>
+                    <li>PDF generation functionality</li>
+                    <li>Print formatting</li>
+                    <li>Subject cost calculations</li>
+                    <li>Branding and layout</li>
+                </ul>
+            </div>
+            
+            <div class="test-example">
+                <h4>🎯 Integration Tests</h4>
+                <ul>
+                    <li>End-to-end workflow</li>
+                    <li>Data flow between components</li>
+                    <li>UI interaction validation</li>
+                    <li>Performance benchmarks</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the application scripts -->
+    <script src="calculator.js"></script>
+    <script src="exporter.js"></script>
+    <script src="tests.js"></script>
+
+    <script>
+        let currentTestRunner = null;
+        
+        function runAllTests() {
+            showLoading();
+            setTimeout(() => {
+                currentTestRunner = new BrowserTestRunner();
+                const results = currentTestRunner.runTests();
+                displayResults(results);
+            }, 100);
+        }
+        
+        function runCalculatorTests() {
+            showLoading();
+            setTimeout(() => {
+                const tests = new TuitionPackageTests();
+                tests.testCalculatorInitialization();
+                tests.testMixedDaysCalculations();
+                tests.testRateOverrides();
+                tests.testServiceFeeCalculations();
+                tests.testSubjectValidation();
+                tests.testEdgeCases();
+                tests.testPackageSuggestions();
+                
+                displayResults(tests.getSummary());
+            }, 100);
+        }
+        
+        function runPDFTests() {
+            showLoading();
+            setTimeout(() => {
+                const tests = new TuitionPackageTests();
+                tests.testPDFGeneration();
+                
+                displayResults(tests.getSummary());
+            }, 100);
+        }
+        
+        function testMixedDays() {
+            showLoading();
+            setTimeout(() => {
+                const calculator = new PackageCalculator();
+                const subjects = [
+                    { name: 'Mathematics', daysPerWeek: 5, sessionDuration: 1 },
+                    { name: 'English', daysPerWeek: 4, sessionDuration: 1 },
+                    { name: 'History', daysPerWeek: 3, sessionDuration: 1 },
+                    { name: 'French', daysPerWeek: 1, sessionDuration: 1 }
+                ];
+                
+                const result = calculator.calculateCosts(subjects, 600);
+                const expected = 7800;
+                const passed = result.weeklyCost === expected;
+                
+                displayCustomTest(
+                    'Mixed Days Calculation',
+                    passed,
+                    `Expected: KES ${expected.toLocaleString()}, Got: KES ${result.weeklyCost.toLocaleString()}`,
+                    subjects
+                );
+            }, 100);
+        }
+        
+        function testRateOverrides() {
+            showLoading();
+            setTimeout(() => {
+                const calculator = new PackageCalculator();
+                const subjects = [{ name: 'Mathematics', daysPerWeek: 3, sessionDuration: 2 }];
+                const rates = [500, 700, 1000];
+                let allPassed = true;
+                let details = [];
+                
+                rates.forEach(rate => {
+                    const result = calculator.calculateCosts(subjects, rate);
+                    const expected = 6 * rate; // 3 days × 2 hours × rate
+                    const passed = result.weeklyCost === expected;
+                    if (!passed) allPassed = false;
+                    
+                    details.push(`Rate ${rate}: Expected ${expected}, Got ${result.weeklyCost} - ${passed ? '✅' : '❌'}`);
+                });
+                
+                displayCustomTest(
+                    'Rate Override Calculations',
+                    allPassed,
+                    details.join('<br>'),
+                    { subjects, rates }
+                );
+            }, 100);
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('noTestsMessage').style.display = 'none';
+            document.getElementById('testResults').innerHTML = '';
+            document.getElementById('resultsSummary').style.display = 'none';
+        }
+        
+        function displayResults(summary) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            
+            // Update summary
+            document.getElementById('passedCount').textContent = summary.passed;
+            document.getElementById('failedCount').textContent = summary.failed;
+            document.getElementById('totalCount').textContent = summary.total;
+            document.getElementById('successRate').textContent = summary.successRate + '%';
+            
+            const summaryMessage = document.getElementById('summaryMessage');
+            if (summary.failed === 0) {
+                summaryMessage.innerHTML = '<div style="color: #059669; font-weight: bold;">🎉 All tests passed! The system is working correctly.</div>';
+            } else {
+                summaryMessage.innerHTML = `<div style="color: #dc2626; font-weight: bold;">⚠️ ${summary.failed} test(s) failed. Please check the details below.</div>`;
+            }
+            
+            document.getElementById('resultsSummary').style.display = 'block';
+        }
+        
+        function displayCustomTest(name, passed, details, data) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            
+            const resultsContainer = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            
+            resultDiv.innerHTML = `
+                <div>
+                    <span class="test-icon ${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span>
+                    <span class="test-description">${name}</span>
+                </div>
+                <div class="test-details">
+                    <strong>Details:</strong><br>
+                    ${details}
+                    ${data ? `<br><strong>Test Data:</strong><br>${JSON.stringify(data, null, 2)}` : ''}
+                </div>
+            `;
+            
+            resultsContainer.appendChild(resultDiv);
+            
+            // Update summary for single test
+            document.getElementById('passedCount').textContent = passed ? 1 : 0;
+            document.getElementById('failedCount').textContent = passed ? 0 : 1;
+            document.getElementById('totalCount').textContent = 1;
+            document.getElementById('successRate').textContent = passed ? '100%' : '0%';
+            
+            const summaryMessage = document.getElementById('summaryMessage');
+            summaryMessage.innerHTML = passed ? 
+                '<div style="color: #059669; font-weight: bold;">✅ Test passed!</div>' :
+                '<div style="color: #dc2626; font-weight: bold;">❌ Test failed!</div>';
+                
+            document.getElementById('resultsSummary').style.display = 'block';
+        }
+        
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = `
+                <div id="noTestsMessage">
+                    <div class="test-result">
+                        <div class="test-description">No tests run yet. Click a test button above to start testing.</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('resultsSummary').style.display = 'none';
+            document.getElementById('loadingMessage').style.display = 'none';
+        }
+        
+        // Auto-run tests if URL parameter is set
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoTest') === 'true') {
+                runAllTests();
+            }
+        });
+    </script>
+</body>
+  </html>
