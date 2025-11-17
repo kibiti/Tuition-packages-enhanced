@@ -1,0 +1,14 @@
+{
+  "name": "elimuhub-tuition-packages",
+  "version": "2.0.0",
+  "description": "Professional tuition packages generator for ElimuHub Education Consultants",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "echo 'Open index.html in your browser'",
+    "deploy": "npm run build && echo 'Ready to deploy dist/ folder'"
+  },
+  "keywords": ["tuition", "education", "calculator", "proposal", "pdf"],
+  "author": "ElimuHub Education Consultants",
+  "license": "MIT"
+}
